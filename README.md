@@ -1,6 +1,6 @@
 # enshadowCHAT
 
-![enshadow](https://github.com/EveryOneIsGross/enshadowCHAT/assets/23621140/5e100bf2-f765-4eb2-99f2-e1867f3ad946)
+![enshadow](https://github.com/EveryOneIsGross/enshadowCHAT/assets/23621140/cbacffbd-07ad-4152-b69d-6ee1d2a7b0f0)
 
 enshadowCHAT is a 2x2 matrix of instanced chatbots that generates a mesh of slightly different answers and then conditions the worst response, into a high temp stream of unconscious to consider along side most relevent response.
 enshadowCHAT is a Python-based conversational AI framework, featuring an ensemble of language models and incorporating a 'shadow' methodology to generate holistic summaries from given prompts. This project leans on the power of GPT-3 and Sentence Transformers to understand and explore prompts deeply and from various perspectives. Emulating how a nn trains data, this framework conditions responses using temperature variance. 
