@@ -118,7 +118,7 @@ class AnswersSum:
         summary = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=self.conversation_history,
-            max_tokens=50
+            max_tokens=250
         )
 
         return summary.choices[0].message.content.strip()
