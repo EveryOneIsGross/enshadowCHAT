@@ -9,6 +9,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import dotenv
 import os
 import re
+from tenacity import retry, stop_after_attempt, wait_fixed
+
 
 dotenv.load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -16,6 +18,25 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Initialize sentiment analyzer and keyword extractor
 sia = SentimentIntensityAnalyzer()
 rake = Rake()
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+def call_openai_api(prompt, temperature):
+    return openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=50,
+        temperature=temperature
+    )
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+def call_openai_chat_api(prompt):
+    return openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a holistic summarizer."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=200
+    )
 
 class Chatbot:
     def __init__(self, base_temperature):
@@ -48,12 +69,7 @@ class Chatbot:
             else:
                 self.temperature = max(self.temperature - 0.1, 0.1)
 
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=50,
-            temperature=self.temperature
-        )
+        response = call_openai_api(prompt, self.temperature)
         text = response.choices[0].text.strip()
         sentiment = sia.polarity_scores(text)
         self.history.append((text, sentiment, current_embedding))
@@ -82,20 +98,9 @@ class HolisticSum:
     def create_holistic_summary(self, best_response, shadow_response):
         history_prompt = " ".join(self.question_history)
         prompt = f"The response to the question is: '{best_response}'. However, on a deeper, unconscious level, the response could also be interpreted as: '{shadow_response}'. The conversation so far has been: '{history_prompt}'."
-
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a holistic summarizer."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=50
-        )
-
-        # Debugging statements
-        print("Prompt:", prompt)
-        print("API Response:", response)
-
+        
+        response = call_openai_chat_api(prompt)
+        
         return response.choices[0].message.content.strip()
 
 class AnswersSum:
